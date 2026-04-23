@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "465937057193",
+    "project_id": "senior-connect-b2bb8",
+    "storage_bucket": "senior-connect-b2bb8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:465937057193:android:21820f290d5ea97728f0b8",
+        "android_client_info": {
+          "package_name": "com.example.senior_checkin_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlKSjTmHNuEXq22A2673msWKwlxlwqs1k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
