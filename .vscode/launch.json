@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "apsit_smart_park",
+            "cwd": "apsit_smart_park",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "apsit_smart_park (profile mode)",
+            "cwd": "apsit_smart_park",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "apsit_smart_park (release mode)",
+            "cwd": "apsit_smart_park",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
