@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "19730600238",
+    "project_id": "smart-student-system",
+    "storage_bucket": "smart-student-system.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19730600238:android:78f52a52cc4cd13a552abf",
+        "android_client_info": {
+          "package_name": "com.example.student_presence_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbRQDn_eK8iPWYoE450-9FBglZQlA3B0k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

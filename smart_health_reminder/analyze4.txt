@@ -1,0 +1,10 @@
+﻿Analyzing meditouch...                              
+
+   info - Dangling library doc comment - lib\screens\add_medicine_screen.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\screens\appointments_screen.dart:1:1 - dangling_library_doc_comments
+   info - Statements in an if should be enclosed in a block - lib\screens\appointments_screen.dart:243:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\appointments_screen.dart:247:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\appointments_screen.dart:554:29 - curly_braces_in_flow_control_structures
+   info - Dangling library doc comment - lib\screens\medicines_screen.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\theme\app_theme.dart:1:1 - dangling_library_doc_comments
+

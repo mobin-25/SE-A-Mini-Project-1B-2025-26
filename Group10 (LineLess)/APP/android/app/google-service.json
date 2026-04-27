@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "241614179799",
+    "project_id": "lineless-9e755",
+    "storage_bucket": "lineless-9e755.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:241614179799:android:d3d957ac031d60b3054f92",
+        "android_client_info": {
+          "package_name": "com.apsit.lineless"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKacpfSpDpnM3SzxpYx0Mfa7UHMfM5bD8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
