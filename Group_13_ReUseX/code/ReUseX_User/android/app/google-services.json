@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1060220221197",
+    "project_id": "reusexcom",
+    "storage_bucket": "reusexcom.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1060220221197:android:f493f0d0439157fd102244",
+        "android_client_info": {
+          "package_name": "com.example.reusex_copy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoGHib-wTLlhZPIvaeu03Ms5iloUDid5M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
