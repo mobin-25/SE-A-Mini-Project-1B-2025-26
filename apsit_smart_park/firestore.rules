@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper: check admin ──────────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null &&
+             request.auth.token.email == "24107019@apsit.edu.in";
+    }
+
+    // ── Helper: signed-in user ───────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // ── Users collection ─────────────────────────────────────────────────────
+    // Each user can only read/write their own document.
+    match /users/{userId} {
+      allow read:   if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // ── Parking slots ─────────────────────────────────────────────────────────
+    // All signed-in users can read. Slots can be updated (reserve/release)
+    // by the owning user or admin. Admin can create/delete.
+    match /parking_slots/{slotId} {
+      allow read:   if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isSignedIn(); // reserveSlot / releaseSlot
+      allow delete: if isAdmin();
+    }
+
+    // ── Bookings ──────────────────────────────────────────────────────────────
+    // Users can read and create their own bookings; only admin can delete.
+    match /bookings/{bookingId} {
+      allow read:   if isSignedIn() && (
+                        resource.data.userId == request.auth.uid || isAdmin()
+                    );
+      allow create: if isSignedIn() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+                        resource.data.userId == request.auth.uid || isAdmin()
+                    );
+      allow delete: if isAdmin();
+    }
+
+    // ── Alerts (admin broadcasts) ─────────────────────────────────────────────
+    // All signed-in users can read alerts; only admin can write/delete.
+    match /alerts/{alertId} {
+      allow read:   if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,37 @@
+﻿Compiling lib\main.dart for the Web...                          
+flutter : Wasm dry 
+run succeeded. 
+Consider building 
+and testing your 
+application with the 
+`--wasm` flag. See 
+docs for more info: h
+ttps://docs.flutter.d
+ev/platform-integrati
+on/web/wasm
+At line:1 char:1
++ flutter build web 
+2>&1 | Out-File 
+-FilePath "C:\Users\9
+1836\OneDrive\ ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Wasm dr   
+ y run su...ratio    
+n/web/wasm:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+Use 
+--no-wasm-dry-run to 
+disable these 
+warnings.
+Font asset "CupertinoIcons.ttf" was tree-shaken, reducing it from 257628 to 1472 bytes (99.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 12316 bytes (99.3% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Compiling lib\main.dart for the Web...                             68.9s
+ΓêÜ Built build\web

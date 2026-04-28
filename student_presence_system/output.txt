@@ -1,0 +1,50 @@
+﻿Analyzing student_presence_system...                            
+
+   info - Don't invoke 'print' in production code - lib\screens\login_screen.dart:68:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\screens\login_screen.dart:69:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\screens\login_screen.dart:77:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\screens\login_screen.dart:93:9 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\student\student_dashboard.dart:189:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\student\student_dashboard.dart:352:56 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\student\student_dashboard.dart:373:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\student\student_dashboard.dart:536:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\student\student_dashboard.dart:536:87 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\teacher\add_marks_screen.dart:55:21 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - lib\screens\teacher\add_marks_screen.dart:157:40 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\teacher\add_marks_screen.dart:158:52 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\teacher\add_marks_screen.dart:159:56 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\screens\teacher\add_marks_screen.dart:160:51 - curly_braces_in_flow_control_structures
+   info - Don't use 'BuildContext's across async gaps - lib\screens\teacher\add_marks_screen.dart:218:28 - use_build_context_synchronously
+   info - Unnecessary use of 'toList' in a spread - lib\screens\teacher\analytics_dialog.dart:337:14 - unnecessary_to_list_in_spreads
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\student_info_screen.dart:91:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\student_info_screen.dart:94:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\student_info_screen.dart:130:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\student_info_screen.dart:145:51 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\teacher\student_info_screen.dart:346:31 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\teacher\student_info_screen.dart:347:38 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\teacher\student_info_screen.dart:422:31 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\teacher\student_info_screen.dart:423:38 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\student_marks_manager.dart:181:39 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\teacher\student_marks_manager.dart:300:17 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\teacher\student_profile_screen.dart:556:23 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\teacher\student_profile_screen.dart:580:43 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\teacher\student_profile_screen.dart:585:48 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\teacher\student_profile_screen.dart:630:43 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\teacher\student_profile_screen.dart:635:48 - use_build_context_synchronously
+   info - The parameter name 'sum' matches a visible type name - lib\screens\teacher\subject_list_screen.dart:319:50 - avoid_types_as_parameter_names
+warning - Unused import: 'student_info_screen.dart' - lib\screens\teacher\teacher_dashboard.dart:8:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\teacher_profile_screen.dart:77:71 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\teacher_profile_screen.dart:92:71 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\teacher\teacher_profile_screen.dart:134:50 - deprecated_member_use
+   info - Unnecessary use of 'toList' in a spread - lib\screens\teacher\widgets\analytics_results.dart:242:16 - unnecessary_to_list_in_spreads
+   info - Don't invoke 'print' in production code - lib\screens\teacher\widgets\delete_all_students_button.dart:74:11 - avoid_print
+   info - Don't use 'BuildContext's across async gaps - lib\screens\teacher\widgets\delete_all_students_button.dart:165:49 - use_build_context_synchronously
+   info - Constructors for public widgets should have a named 'key' parameter - lib\seed_dummy_data.dart:24:7 - use_key_in_widget_constructors
+   info - The private field _logs could be 'final' - lib\seed_dummy_data.dart:32:16 - prefer_final_fields
+   info - Don't use 'BuildContext's across async gaps - lib\seed_dummy_data.dart:167:9 - use_build_context_synchronously
+   info - Don't invoke 'print' in production code - lib\services\csv_service.dart:116:13 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\csv_service.dart:205:11 - avoid_print
+   info - Statements in an if should be enclosed in a block - lib\services\csv_service.dart:260:54 - curly_braces_in_flow_control_structures
+   info - Don't invoke 'print' in production code - lib\utils\dummy_attendance.dart:23:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\utils\dummy_attendance.dart:78:3 - avoid_print
+

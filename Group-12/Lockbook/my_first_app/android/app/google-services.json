@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30466765887",
+    "project_id": "lockbook-7bcfc",
+    "storage_bucket": "lockbook-7bcfc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30466765887:android:b040cb58560b22530d348a",
+        "android_client_info": {
+          "package_name": "com.example.my_first_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqFDqp0h6B8G4BVSW99vgkonFcXhRcUs4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

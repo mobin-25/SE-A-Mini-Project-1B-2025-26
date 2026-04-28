@@ -1,0 +1,442 @@
+// Admin Chat — chat room list + real-time messaging with patients.
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../theme/app_theme.dart';
+import '../../models/models.dart';
+import '../../providers/admin_providers.dart';
+import '../../services/firestore_service.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/nebula_background.dart';
+
+/// Displays all chat rooms the doctor has with patients.
+class AdminChatScreen extends ConsumerWidget {
+  const AdminChatScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomsAsync = ref.watch(chatRoomsStreamProvider);
+
+    return NebulaBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Row(
+                  children: const [
+                    Icon(
+                      Icons.chat_bubble_rounded,
+                      color: AppTheme.electricBlue,
+                      size: 28,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Messages',
+                      style: TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: roomsAsync.when(
+                  data: (rooms) {
+                    if (rooms.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.forum_outlined,
+                              color: AppTheme.textSecondary.withValues(
+                                alpha: 0.5,
+                              ),
+                              size: 64,
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'No conversations yet',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: rooms.length,
+                      itemBuilder: (_, i) => _ChatRoomTile(room: rooms[i]),
+                    );
+                  },
+                  loading:
+                      () => const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.electricBlue,
+                        ),
+                      ),
+                  error:
+                      (e, _) => Center(
+                        child: Text(
+                          'Error: $e',
+                          style: const TextStyle(color: AppTheme.radiantPink),
+                        ),
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatRoomTile extends ConsumerWidget {
+  final ChatRoom room;
+  const _ChatRoomTile({required this.room});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (_) => AdminChatDetailScreen(
+                  chatRoomId: room.id,
+                  patientName: room.patientName,
+                ),
+          ),
+        );
+      },
+      child: GlassCard(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppTheme.accentGradient,
+              ),
+              child: Center(
+                child: Text(
+                  room.patientName.isNotEmpty
+                      ? room.patientName[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    room.patientName,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  if (room.lastMessage != null && room.lastMessage!.isNotEmpty)
+                    Text(
+                      room.lastMessage!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (room.lastMessageTime != null)
+                  Text(
+                    _formatTime(room.lastMessageTime!),
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime dt) {
+    final now = DateTime.now();
+    if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+      return DateFormat('hh:mm a').format(dt);
+    }
+    return DateFormat('MMM dd').format(dt);
+  }
+}
+
+/// Real-time chat with a specific patient.
+class AdminChatDetailScreen extends ConsumerStatefulWidget {
+  final String chatRoomId;
+  final String patientName;
+
+  const AdminChatDetailScreen({
+    super.key,
+    required this.chatRoomId,
+    required this.patientName,
+  });
+
+  @override
+  ConsumerState<AdminChatDetailScreen> createState() =>
+      _AdminChatDetailScreenState();
+}
+
+class _AdminChatDetailScreenState extends ConsumerState<AdminChatDetailScreen> {
+  final _controller = TextEditingController();
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    final message = ChatMessage(
+      senderId: FirestoreService().uid,
+      text: text,
+      timestamp: DateTime.now(),
+    );
+    ref.read(chatRepoProvider).sendMessage(widget.chatRoomId, message);
+    _controller.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final messagesAsync = ref.watch(
+      chatMessagesStreamProvider(widget.chatRoomId),
+    );
+
+    return NebulaBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          title: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppTheme.greenBlueGradient,
+                ),
+                child: Center(
+                  child: Text(
+                    widget.patientName.isNotEmpty
+                        ? widget.patientName[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(widget.patientName),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: messagesAsync.when(
+                data: (messages) {
+                  if (messages.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'Start a conversation',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                          fontSize: 15,
+                        ),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: _scrollCtrl,
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    itemCount: messages.length,
+                    itemBuilder: (_, i) => _MessageBubble(message: messages[i]),
+                  );
+                },
+                loading:
+                    () => const Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.electricBlue,
+                      ),
+                    ),
+                error: (e, _) => Center(child: Text('Error: $e')),
+              ),
+            ),
+
+            // Input
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 12),
+              decoration: BoxDecoration(
+                color: AppTheme.bgCard.withValues(alpha: 0.9),
+                border: Border(
+                  top: BorderSide(
+                    color: AppTheme.electricBlue.withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        style: const TextStyle(color: AppTheme.textPrimary),
+                        minLines: 1,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: 'Type a message...',
+                          hintStyle: const TextStyle(
+                            color: AppTheme.textSecondary,
+                          ),
+                          filled: true,
+                          fillColor: AppTheme.bgPrimary.withValues(alpha: 0.6),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                        ),
+                        onSubmitted: (_) => _send(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: _send,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppTheme.accentGradient,
+                          ),
+                          child: const Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageBubble extends StatelessWidget {
+  final ChatMessage message;
+  const _MessageBubble({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDoctor = message.senderId == FirestoreService().uid;
+    return Align(
+      alignment: isDoctor ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
+        decoration: BoxDecoration(
+          color:
+              isDoctor
+                  ? AppTheme.electricBlue.withValues(alpha: 0.2)
+                  : AppTheme.bgCard,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(16),
+            topRight: const Radius.circular(16),
+            bottomLeft: isDoctor ? const Radius.circular(16) : Radius.zero,
+            bottomRight: isDoctor ? Radius.zero : const Radius.circular(16),
+          ),
+          border: Border.all(
+            color:
+                isDoctor
+                    ? AppTheme.electricBlue.withValues(alpha: 0.3)
+                    : AppTheme.textSecondary.withValues(alpha: 0.15),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              message.text,
+              style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              DateFormat('hh:mm a').format(message.timestamp),
+              style: TextStyle(
+                color: AppTheme.textSecondary.withValues(alpha: 0.7),
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
