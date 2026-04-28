@@ -1,0 +1,56 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "smart-student-system",
+          "appId": "1:19730600238:android:78f52a52cc4cd13a552abf",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "smart-student-system",
+          "configurations": {
+            "android": "1:19730600238:android:78f52a52cc4cd13a552abf",
+            "ios": "1:19730600238:ios:9a6a80bbcda511de552abf",
+            "macos": "1:19730600238:ios:9a6a80bbcda511de552abf",
+            "web": "1:19730600238:web:d5a527182c9d60dc552abf",
+            "windows": "1:19730600238:web:a8b9b9a9fd086b00552abf"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}
