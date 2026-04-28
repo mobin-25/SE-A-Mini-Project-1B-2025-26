@@ -47,6 +47,7 @@ class _CheckInScreenState extends State<CheckInScreen>
   double fontSize = 18;
   bool _isListening = false;
   bool _isSendingSOS = false;
+  TimeOfDay? _savedReminderTime;   // ← track the saved reminder time
 
   // Health alert
   HealthAlert? _healthAlert;
@@ -64,6 +65,7 @@ class _CheckInScreenState extends State<CheckInScreen>
     super.initState();
     loadTodayStatus();
     loadSavedReminder();
+    _loadSavedReminderTime();
     _fetchHealthAlert();
 
     _pulseController = AnimationController(
@@ -614,12 +616,43 @@ class _CheckInScreenState extends State<CheckInScreen>
   // REMINDER
   // ─────────────────────────────────────────────────────────────────
   Future<void> pickMedicationTime() async {
-    TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    // Request notification permission first (Android 13+)
+    await NotificationService.requestNotificationsPermission();
+
+    if (!mounted) return;
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
     if (picked != null) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('med_hour', picked.hour);
       await prefs.setInt('med_min', picked.minute);
       await NotificationService.scheduleDaily(picked.hour, picked.minute);
+      setState(() => _savedReminderTime = picked);  // ← update UI card
+
+      if (!mounted) return;
+      final formattedTime = picked.format(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          backgroundColor: kPurple,
+          duration: const Duration(seconds: 4),
+          content: Row(
+            children: [
+              const Icon(Icons.alarm_on_rounded, color: Colors.white),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '💊 Medication reminder set for $formattedTime daily',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
   }
 
@@ -628,6 +661,15 @@ class _CheckInScreenState extends State<CheckInScreen>
     int? h = prefs.getInt('med_hour');
     int? m = prefs.getInt('med_min');
     if (h != null && m != null) await NotificationService.scheduleDaily(h, m);
+  }
+
+  Future<void> _loadSavedReminderTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    final h = prefs.getInt('med_hour');
+    final m = prefs.getInt('med_min');
+    if (h != null && m != null && mounted) {
+      setState(() => _savedReminderTime = TimeOfDay(hour: h, minute: m));
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────
@@ -796,13 +838,49 @@ class _CheckInScreenState extends State<CheckInScreen>
                   const SizedBox(height: 28),
 
                   // ── SOS Button ───────────────────────────────────────
-                  _BigActionButton(
-                    icon: Icons.sos_rounded,
-                    label: "SOS Emergency",
-                    subtitle: "SMS all contacts + direct call",
-                    color: kDanger,
-                    fontSize: fontSize,
+                  GestureDetector(
                     onTap: showEmergencyDialog,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE74C3C), Color(0xFFFF6B6B)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kDanger.withOpacity(0.4),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.sos_rounded,
+                            color: Colors.white,
+                            size: 56,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "SOS Emergency",
+                            style: TextStyle(
+                                color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "SMS all contacts + direct call",
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.9), fontSize: 13),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 14),
@@ -853,6 +931,9 @@ class _CheckInScreenState extends State<CheckInScreen>
                         icon: Icons.alarm_rounded,
                         label: "Set Reminder",
                         color: const Color(0xFF2980B9),
+                        subtitle: _savedReminderTime != null
+                            ? _savedReminderTime!.format(context)
+                            : null,
                         onTap: pickMedicationTime,
                       ),
                       _QuickCard(
@@ -1005,11 +1086,12 @@ class _BigActionButton extends StatelessWidget {
 class _QuickCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String? subtitle;   // optional
   final Color color;
   final VoidCallback onTap;
 
   const _QuickCard(
-      {required this.icon, required this.label, required this.color, required this.onTap});
+      {required this.icon, required this.label, required this.color, required this.onTap, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -1037,9 +1119,16 @@ class _QuickCard extends StatelessWidget {
                   color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: color, size: 22),
             ),
+            const SizedBox(height: 4),
             Text(label,
                 style: const TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w700, color: kTextDark)),
+            if (subtitle != null)
+              Text(subtitle!,
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: color)),
           ],
         ),
       ),

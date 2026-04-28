@@ -262,4 +262,12 @@ class FirebaseService {
       print('Error sending alert: $e');
     }
   }
+
+  /// Stream recent alerts (live)
+  static Stream<QuerySnapshot> alertsStream(String uid) =>
+      _userDoc(uid)
+          .collection('alerts')
+          .orderBy('timestamp', descending: true)
+          .limit(5)
+          .snapshots();
 }

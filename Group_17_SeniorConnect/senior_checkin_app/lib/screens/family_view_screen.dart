@@ -1,10 +1,17 @@
+import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/emergency_contact_model.dart';
 import '../providers/app_provider.dart';
 import '../services/firebase_service.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 
 const kPrimary  = Color(0xFF2D7DD2);
 const kSuccess  = Color(0xFF27AE60);
@@ -53,6 +60,45 @@ class _FamilyViewScreenState extends State<FamilyViewScreen> {
     _noteController.dispose();
     _alertController.dispose();
     super.dispose();
+  }
+
+  // ── Load all emergency contacts from SharedPreferences ───────────────
+  Future<List<EmergencyContact>> _loadAllContacts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('emergency_contacts_v2');
+    if (raw != null) {
+      try {
+        return (json.decode(raw) as List)
+            .map((e) => EmergencyContact.fromMap(e as Map<String, dynamic>))
+            .toList();
+      } catch (_) {}
+    }
+    final legacy = prefs.getString('emergency_contact');
+    if (legacy != null && legacy.isNotEmpty) {
+      return [EmergencyContact(id: '0', name: 'Emergency Contact', phone: legacy)];
+    }
+    return [];
+  }
+
+  // ── Send SMS to all emergency contacts ───────────────────────────────
+  Future<int> _sendSmsToAll(List<EmergencyContact> contacts, String msg) async {
+    int sent = 0;
+    if (Platform.isAndroid) {
+      final status = await Permission.sms.request();
+      if (status.isGranted) {
+        const platform = MethodChannel('com.seniorcare/sms');
+        for (final c in contacts) {
+          try {
+            final clean = c.phone.replaceAll(RegExp(r'[^\d+]'), '');
+            await platform.invokeMethod('sendSMS', {'phone': clean, 'msg': msg});
+            sent++;
+          } catch (e) {
+            debugPrint('SMS failed for ${c.name}: $e');
+          }
+        }
+      }
+    }
+    return sent;
   }
 
   @override
@@ -385,8 +431,10 @@ class _FamilyViewScreenState extends State<FamilyViewScreen> {
 
                 const SizedBox(height: 28),
 
-                // ── QUICK ALERT BUTTON ───────────────────────────────────
+                // ── SEND ALERT ───────────────────────────────────────────
                 const Text('Send Alert', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: kTextDark)),
+                const SizedBox(height: 6),
+                const Text('This will pop a notification on the device', style: TextStyle(fontSize: 12, color: kTextGrey)),
                 const SizedBox(height: 14),
 
                 Container(
@@ -394,14 +442,14 @@ class _FamilyViewScreenState extends State<FamilyViewScreen> {
                   decoration: BoxDecoration(
                     color: kCard,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE8EDF5), width: 1),
+                    border: Border.all(color: kDanger.withOpacity(0.25), width: 1.2),
                   ),
                   child: Row(children: [
                     Expanded(
                       child: TextField(
                         controller: _alertController,
                         decoration: InputDecoration(
-                          hintText: 'Message...',
+                          hintText: 'Type your alert message...',
                           hintStyle: TextStyle(color: kTextGrey.withOpacity(0.6)),
                           border: InputBorder.none,
                         ),
@@ -411,21 +459,89 @@ class _FamilyViewScreenState extends State<FamilyViewScreen> {
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () async {
-                        if (_alertController.text.trim().isNotEmpty) {
-                          await FirebaseService.sendAlert(uid, userName, _alertController.text.trim());
-                          _alertController.clear();
-                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: const Text('Alert sent!'), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                        final msg = _alertController.text.trim();
+                        if (msg.isEmpty) return;
+
+                        // 1. Save to Firestore
+                        await FirebaseService.sendAlert(uid!, userName, msg);
+
+                        // 2. Fire local notification on THIS device
+                        await NotificationService.showCustomAlert(
+                          title: '⚠️ Family Alert',
+                          body: msg,
+                        );
+
+                        // 3. Send SMS to ALL emergency contacts
+                        final contacts = await _loadAllContacts();
+                        int smsSent = 0;
+                        if (contacts.isNotEmpty) {
+                          final smsBody =
+                              'SeniorCare Alert from $userName: $msg';
+                          smsSent = await _sendSmsToAll(contacts, smsBody);
+                        }
+
+                        _alertController.clear();
+                        if (mounted) {
+                          final contactInfo = contacts.isEmpty
+                              ? 'No emergency contacts set'
+                              : '$smsSent/${contacts.length} contact(s) SMS\'d';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(children: [
+                                const Icon(Icons.send_rounded, color: Colors.white),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Alert sent! $contactInfo',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ]),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: kDanger,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              duration: const Duration(seconds: 4),
+                            ),
                           );
                         }
                       },
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(color: kDanger, shape: BoxShape.circle),
-                        child: const Icon(Icons.error_rounded, color: Colors.white, size: 18),
+                        child: const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 18),
                       ),
                     ),
                   ]),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── RECENT ALERTS STREAM ─────────────────────────────────
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseService.alertsStream(uid!),
+                  builder: (context, snap) {
+                    if (!snap.hasData || snap.data!.docs.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text('No alerts sent yet',
+                            style: TextStyle(color: kTextGrey.withOpacity(0.7), fontSize: 13)),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Recent Alerts', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: kTextGrey)),
+                        const SizedBox(height: 8),
+                        ...snap.data!.docs.map((doc) {
+                          final d = doc.data() as Map<String, dynamic>;
+                          final msg = d['message'] as String? ?? '';
+                          final author = d['author'] as String? ?? 'Family';
+                          final ts = (d['timestamp'] as Timestamp?)?.toDate();
+                          return _AlertTile(author: author, message: msg, timestamp: ts);
+                        }),
+                      ],
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 28),
@@ -657,6 +773,50 @@ class _FamilyNoteTile extends StatelessWidget {
       ]),
       const SizedBox(height: 6),
       Text(message, style: const TextStyle(fontSize: 13, color: kTextDark)),
+    ]),
+  );
+}
+
+class _AlertTile extends StatelessWidget {
+  final String author;
+  final String message;
+  final DateTime? timestamp;
+
+  const _AlertTile({required this.author, required this.message, this.timestamp});
+
+  String _formatTime(DateTime? time) {
+    if (time == null) return '';
+    final diff = DateTime.now().difference(time);
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.only(bottom: 10),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: kDanger.withOpacity(0.06),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: kDanger.withOpacity(0.2), width: 1),
+    ),
+    child: Row(children: [
+      Container(
+        width: 36, height: 36,
+        decoration: BoxDecoration(color: kDanger.withOpacity(0.12), shape: BoxShape.circle),
+        child: const Icon(Icons.notifications_active_rounded, color: kDanger, size: 18),
+      ),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(child: Text(author, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: kTextDark))),
+          Text(_formatTime(timestamp), style: TextStyle(fontSize: 11, color: kTextGrey)),
+        ]),
+        const SizedBox(height: 3),
+        Text(message, style: const TextStyle(fontSize: 13, color: kTextDark)),
+      ])),
     ]),
   );
 }
