@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "488031049875",
+    "project_id": "smart-health-reminder-d338f",
+    "storage_bucket": "smart-health-reminder-d338f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488031049875:android:e91dd691a40955bf041566",
+        "android_client_info": {
+          "package_name": "com.example.meditouch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5MFYBQdeskrkvlswXZHgumH9LpcZ6gyo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
